@@ -29,7 +29,7 @@ It reads users from the 3X-UI API, obtains each client's traffic usage, stores q
 
 ## ✨ Features
 
-- 👥 Import and synchronize 3X-UI clients
+- 👥 Import and synchronize 3X-UI clients Node
 - 📡 Read upload, download, and total traffic
 - 📊 Animated and color-coded usage progress bars
 - 🎯 Set an independent quota for each client
