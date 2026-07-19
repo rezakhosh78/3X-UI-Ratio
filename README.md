@@ -113,7 +113,7 @@ sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/rezakhosh78/3x-ui-R
 
 ## 📦 Manual Installation
 
-Download the latest `tar.gz` file from the [Releases](https://github.com/rezakhosh78/3x-ui-Ratio/releases) page and run:
+Download the latest `.zip` file from the [Releases](https://github.com/rezakhosh78/3x-ui-Ratio/releases) page and run:
 
 ```bash
 unzip 3X-UI-Ratio-*.zip
