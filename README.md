@@ -1,40 +1,159 @@
+<div align="center">
+
+<img src="assets/logo.png" alt="3X-UI Ratio Logo" width="150">
+
 # 3X-UI Ratio
 
-3X-UI Ratio is an independent quota-management panel for **Sanaei 3X-UI**.
+### 3X-UI Independent Quota Management
 
-It reads users through the official 3X-UI HTTP API, reads traffic from each user's subscription response headers, stores quota state in its own SQLite database, and disables exhausted users through the official API. It never opens or edits the 3X-UI database directly.
+[![Version](https://img.shields.io/github/v/release/rezakhosh78/3x-ui-Ratio?display_name=tag&style=for-the-badge)](https://github.com/rezakhosh78/3x-ui-Ratio/releases)
+[![License](https://img.shields.io/github/license/rezakhosh78/3x-ui-Ratio?style=for-the-badge)](LICENSE)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](#-installation)
+[![Telegram](https://img.shields.io/badge/Telegram-Channel-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/pingplas_channel)
 
-## Features
+[فارسی](README_FA.md) · [English](README.md)
 
-- User synchronization through the current Clients API.
-- Compatibility fallback through the legacy Inbounds API.
-- Subscription traffic parsing from `Subscription-Userinfo` and `x-subscription-userinfo`.
-- Independent Ratio usage cycles that survive traffic resets in 3X-UI.
-- Manual and automatic client enable/disable controls.
-- SQLite backup download and validated database restore in the Web UI.
-- Automatic restore point before every database import.
-- English Ubuntu installer and terminal management interface.
-- Docker Compose deployment with a non-root application container.
+</div>
 
-## Version 0.1.2 authentication fix
+---
 
-Some 3X-UI releases intentionally return HTTP 404 for an existing API route when authentication is missing or invalid. Version 0.1.2 sends the AJAX identification header expected by 3X-UI, allowing the server to return HTTP 401 instead. Ratio can now distinguish an invalid API token from a genuinely incorrect API URL.
+## 📌 About
 
-Use the plaintext API token displayed once when a token is created under the 3X-UI Authentication/API Tokens settings. A masked token copied later cannot authenticate.
+**3X-UI Ratio** is an independent quota-management panel for 3X-UI.
 
-## Install on Ubuntu or Debian
+It reads users from the 3X-UI API, obtains each client's traffic usage from the subscription URL, stores quota information in its own database, and can disable a client through the official 3X-UI API when the configured quota is reached.
 
-Extract the server archive and run:
+> 3X-UI Ratio does **not** directly edit the 3X-UI database.
+
+---
+
+## ✨ Features
+
+- 👥 Import and synchronize 3X-UI clients
+- 📡 Read upload, download, and total traffic from subscription headers
+- 📊 Animated and color-coded usage progress bars
+- 🎯 Set an independent quota for each client
+- 📴 Automatically disable clients after quota exhaustion
+- ▶️ Start or stop quota enforcement
+- ⏸️ Global Ratio ON/OFF control
+- ☑️ Multi-select users and apply a shared quota
+- 🔄 Automatic synchronization with a minimum interval of 10 seconds
+- 🧹 Archive clients removed from 3X-UI without losing historical data
+- 💾 Download database backups from the Web UI
+- 📥 Import and restore database backups
+- 📝 Logs and audit history
+- 🌐 English and Persian Web UI
+- 🌙 Light and dark themes
+- 📱 Responsive RTL/LTR interface
+- 🐳 Docker-based installation
+- 🛠️ Terminal management command: `3xui-ratio`
+
+---
+
+## 🧩 How It Works
+
+```text
+3X-UI API
+   │
+   ├── User list and client status
+   │
+   ▼
+3X-UI Ratio
+   │
+   ├── Independent quota database
+   ├── Subscription usage reader
+   ├── Scheduler and enforcement engine
+   │
+   ▼
+3X-UI API
+   └── Disable client when quota is reached
+```
+
+Traffic usage is calculated from the subscription response headers:
+
+```text
+upload + download = used traffic
+```
+
+The quota configured in Ratio is independent of the traffic limit configured in 3X-UI.
+
+---
+
+## ✅ Requirements
+
+Recommended environment:
+
+- Ubuntu 20.04, 22.04, or 24.04
+- Root or `sudo` access
+- Internet access
+- A reachable 3X-UI panel
+- 3X-UI API credentials or API token
+- Subscription service enabled in 3X-UI
+
+Docker and Docker Compose can be installed automatically by the installer when required.
+
+---
+
+## 🚀 One-Line Installation
+
+Run as root:
 
 ```bash
+bash <(curl -Ls https://raw.githubusercontent.com/rezakhosh78/3x-ui-Ratio/main/install.sh)
+```
+
+Alternative command using `sudo`:
+
+```bash
+sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/rezakhosh78/3x-ui-Ratio/main/install.sh)"
+```
+
+> If your default GitHub branch is not `main`, replace `main` with the correct branch name.
+
+---
+
+## 📦 Manual Installation
+
+Download the latest `tar.gz` file from the [Releases](https://github.com/rezakhosh78/3x-ui-Ratio/releases) page and run:
+
+```bash
+tar -xzf 3X-UI-Ratio-*.tar.gz
 cd 3xui-ratio
 sudo bash install.sh
 ```
 
-After installation, open the terminal manager with:
+The installer asks for:
+
+- Web UI port
+- Administrator username
+- Administrator password
+- Secure-cookie preference
+- Optional update source
+
+---
+
+## 🖥️ Terminal Management
+
+After installation, run:
 
 ```bash
 sudo 3xui-ratio
+```
+
+Available operations include:
+
+```text
+1) Service status
+2) Start service
+3) Stop service
+4) Restart service
+5) Live logs
+6) Create full backup
+7) Update panel
+8) Edit installation settings
+9) Show version
+10) Uninstall completely
+0) Exit
 ```
 
 Direct commands:
@@ -46,103 +165,233 @@ sudo 3xui-ratio stop
 sudo 3xui-ratio restart
 sudo 3xui-ratio logs
 sudo 3xui-ratio backup
-sudo 3xui-ratio update /root/3X-UI-Ratio-v0.1.10.tar.gz
+sudo 3xui-ratio update
 sudo 3xui-ratio uninstall
 ```
 
-## Configure the 3X-UI connection
+---
 
-Enter the exact URL used to open the 3X-UI panel in a browser, including its WebBasePath, for example:
+## 🔗 Connecting to 3X-UI
 
-```text
-http://server-ip:2053/secret-path
-https://panel.example.com/secret-path
-```
+Open **Connection** in the Web UI and enter the complete 3X-UI access URL, including its WebBasePath.
 
-Do not manually append `/panel/api`.
-
-Then enter a newly created plaintext API token. Ratio sends it as:
+Example:
 
 ```text
-Authorization: Bearer YOUR_TOKEN
+https://panel.example.com:8443/your-web-base-path
 ```
 
-The supported official API roots include:
+Do not manually append `/panel/api` unless your specific installation requires it.
+
+### Subscription Base URL
+
+Enter the subscription-service URL without the client `subId`.
+
+Example:
 
 ```text
-<panel-access-url>/panel/api/clients
-<panel-access-url>/panel/api/inbounds
+https://subscription.example.com/sub
 ```
 
-## Subscription URL template
-
-Examples:
+Ratio appends the client `subId` automatically:
 
 ```text
-{panel_url}/sub/{sub_id}
-https://sub.example.com/sub/{sub_id}
+https://subscription.example.com/sub/CLIENT_SUB_ID
 ```
 
-Available variables are `{panel_url}`, `{sub_id}`, `{subId}`, and `{email}`.
+---
 
-## Database backup and restore
+## 🎯 Quota Enforcement
 
-Open **Backup & Restore** in the Web UI.
+For each client, you can:
 
-- **Create and download backup** creates a consistent SQLite snapshot.
-- **Import and restore database** validates the SQLite header, integrity, and required Ratio tables before replacing the current database.
-- A pre-restore snapshot is created automatically under `/opt/3xui-ratio/data/backups`.
+- Set or change the quota
+- Reset the usage cycle
+- Start enforcement
+- Stop enforcement
+- Enable or disable the 3X-UI client
 
-Backups contain sensitive configuration. Restoring a backup on another installation requires the same `ENCRYPTION_KEY` to decrypt the stored 3X-UI API token.
+When enforcement is enabled:
 
-## Update an existing installation
+```text
+used traffic >= Ratio quota
+```
 
-Copy the new archive to the server, then run:
+Ratio verifies the client status and sends a disable request through the 3X-UI API.
+
+### Global Controls
+
+- **Ratio ON/OFF:** pauses or resumes all operational functions
+- **Stop All Enforcement:** disables quota enforcement without disabling 3X-UI clients
+- **Start Enforcement:** enables enforcement for selected clients with a configured quota
+
+---
+
+## 💾 Backup and Restore
+
+The **Backup & Restore** section supports:
+
+- Creating and downloading a database snapshot
+- Importing `.db`, `.sqlite`, or `.sqlite3` files
+- Validating SQLite integrity before restore
+- Creating an automatic restore point before replacement
+
+Backups include:
+
+- Connections
+- Managed users
+- Quotas
+- Usage cycles
+- Settings
+- Logs
+- Audit history
+
+> Store backups securely because they may contain encrypted connection credentials and operational data.
+
+---
+
+## 🔄 Updating
+
+Update using the terminal manager:
 
 ```bash
-sudo 3xui-ratio update /root/3X-UI-Ratio-v0.1.10.tar.gz
+sudo 3xui-ratio update
 ```
 
-A full backup is created automatically before the update. Existing `.env`, database, users, quotas, usage counters, and audit records are preserved.
+Or provide a release archive:
 
-## Security
+```bash
+sudo 3xui-ratio update /root/3X-UI-Ratio-latest.tar.gz
+```
 
-- Keep `/opt/3xui-ratio/.env` readable only by root.
-- Put the Ratio Web UI behind HTTPS before enabling `COOKIE_SECURE=true`.
-- Restrict the Ratio port to administrator IP addresses or a reverse proxy.
-- API tokens are encrypted in the Ratio database using Fernet.
-- Ratio does not connect to the 3X-UI SQLite or PostgreSQL database.
+The updater creates a backup before replacing application files.
 
-## v0.1.4 synchronization fixes
+---
 
-- Removed clients are archived internally but excluded from the dashboard count and user list.
-- Subscription URLs returned directly by the 3X-UI client API are preferred when available.
-- On HTTP 404, Ratio retries the standard root subscription route (`/sub/{sub_id}`) in addition to the configured template.
-- The first working subscription URL is stored for later synchronizations.
-- Subscription errors now include every attempted URL, which helps identify a separate subscription domain, port, or custom URI path.
+## 🗑️ Uninstallation
 
-## v0.1.8 branding and navigation
+Run:
 
-- Added the 3X-UI Ratio logo to the sign-in page, sidebar brand, browser favicon, and touch icon.
-- Moved **Powered By ReZa Kh** directly below **Sign out** in the sidebar.
-- Renamed **Audit log** to **Logs**.
-- Moved **Logs** directly below **Backup & Restore**.
-- Included transparent SVG and PNG logo assets for sharp rendering in light and dark themes.
+```bash
+sudo 3xui-ratio uninstall
+```
 
+Complete removal requires explicit confirmation.
 
-## v0.1.9 project links
+Backups may remain in:
 
-- Added compact GitHub and Telegram icons directly below the **3X-UI Ratio** sidebar title.
-- GitHub opens `https://github.com/rezakhosh78/3x-ui-Ratio`.
-- Telegram opens `https://t.me/pingplas_channel`.
-- Both links open safely in a new tab and adapt to light, dark, LTR, RTL, desktop, and mobile layouts.
+```text
+/var/backups/3xui-ratio
+```
 
-## v0.1.10 navigation and sign-in refinements
+Delete them manually only when they are no longer needed.
 
-- Added simple inline icons for **Users**, **Connection**, **Backup & Restore**, and **Logs**.
-- Enlarged the sign-in logo and positioned it above the **3X-UI Ratio** title.
-- Changed the sign-in subtitle to **3X-UI Independent Quota Management**.
-- Set the Persian sign-in subtitle to **مدیریت مستقل حجم 3X-UI**.
-- Kept the menu icon layout compatible with light, dark, LTR, RTL, desktop, and mobile views.
-- Added compact GitHub and Telegram buttons to the sign-in page with safe new-tab links.
+---
 
+## 🔐 Security Notes
+
+- Use HTTPS for both the Ratio Web UI and 3X-UI whenever possible.
+- Use a strong administrator password.
+- Do not publish API tokens, cookies, backup files, or `.env` files.
+- Restrict the Web UI port with a firewall or reverse proxy.
+- Keep 3X-UI Ratio and 3X-UI updated.
+- Test enforcement on a non-critical client before enabling it for all users.
+- Review logs after changing API or subscription settings.
+
+---
+
+## 🧯 Troubleshooting
+
+### No compatible API endpoint was found
+
+Check:
+
+- Panel URL and WebBasePath
+- HTTP versus HTTPS
+- API token or login credentials
+- Reverse-proxy routing
+- 3X-UI API availability
+
+### Subscription URL returned HTTP 404
+
+Check:
+
+- Subscription service is enabled
+- Subscription port and domain are correct
+- Subscription Base URL does not include a client `subId`
+- The client has a valid `subId`
+- Reverse-proxy routing allows `/sub/...`
+
+### Automatic synchronization is delayed
+
+Check:
+
+```bash
+sudo 3xui-ratio logs
+```
+
+Also verify:
+
+- Ratio is ON
+- Polling interval is at least 10 seconds
+- Subscription requests are not timing out
+- The server clock is correct
+- The container is running
+
+---
+
+## 🛣️ Roadmap
+
+- 📈 Historical traffic charts
+- 🔔 Telegram notifications
+- 🧑‍💼 Multiple administrator accounts
+- 🧩 Multiple 3X-UI panel connections
+- 📤 CSV export
+- 🗓️ Scheduled quota reset policies
+- 🔐 Additional authentication options
+
+---
+
+## 🤝 Contributing
+
+Contributions, bug reports, and feature requests are welcome.
+
+1. Fork the repository
+2. Create a feature branch
+3. Commit your changes
+4. Open a Pull Request
+
+Please avoid including private server addresses, API tokens, user data, or backup databases in issues and pull requests.
+
+---
+
+## 📣 Links
+
+- 🐙 GitHub: [3X-UI Ratio](https://github.com/rezakhosh78/3x-ui-Ratio)
+- ✈️ Telegram: [Ping Plus Channel](https://t.me/pingplas_channel)
+- 📦 Releases: [Download latest version](https://github.com/rezakhosh78/3x-ui-Ratio/releases)
+- 🐛 Issues: [Report a problem](https://github.com/rezakhosh78/3x-ui-Ratio/issues)
+
+---
+
+## ⚖️ Disclaimer
+
+This project is an independent management tool and is not an official component of 3X-UI.
+
+You are responsible for:
+
+- Securing your server
+- Protecting credentials and backups
+- Verifying API compatibility
+- Testing quota enforcement
+- Complying with applicable laws and service-provider policies
+
+---
+
+<div align="center">
+
+### Powered By ReZa Kh
+
+⭐ If this project helps you, please give it a star on GitHub.
+
+</div>
