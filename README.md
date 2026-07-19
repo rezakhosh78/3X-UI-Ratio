@@ -4,7 +4,7 @@
 
 # 3X-UI Ratio
 
-### 3X-UI Independent Quota Management
+### 3X-UI Independent Quota Node Management
 
 [![Version](https://img.shields.io/github/v/release/rezakhosh78/3x-ui-Ratio?display_name=tag&style=for-the-badge)](https://github.com/rezakhosh78/3x-ui-Ratio/releases)
 [![License](https://img.shields.io/github/license/rezakhosh78/3x-ui-Ratio?style=for-the-badge)](LICENSE)
@@ -19,7 +19,7 @@
 
 ## 📌 About
 
-**3X-UI Ratio** is an independent quota-management panel for 3X-UI.
+**3X-UI Ratio** is an independent quota-Node management panel for 3X-UI.
 
 It reads users from the 3X-UI API, obtains each client's traffic usage, stores quota information in its own database, and can disable a client through the official 3X-UI API when the configured quota is reached.
 
