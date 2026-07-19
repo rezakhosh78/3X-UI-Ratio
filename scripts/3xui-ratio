@@ -1,0 +1,149 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+SCRIPT_VERSION="0.1.10"
+APP_DIR="/opt/3xui-ratio"
+BACKUP_DIR="/var/backups/3xui-ratio"
+COMPOSE=(docker compose --project-directory "$APP_DIR" -f "$APP_DIR/docker-compose.yml")
+
+red='\033[0;31m'; green='\033[0;32m'; yellow='\033[1;33m'; cyan='\033[0;36m'; reset='\033[0m'
+info(){ echo -e "${cyan}[3X-UI Ratio]${reset} $*"; }
+ok(){ echo -e "${green}[OK]${reset} $*"; }
+warn(){ echo -e "${yellow}[!]${reset} $*"; }
+die(){ echo -e "${red}[ERROR]${reset} $*" >&2; exit 1; }
+need_root(){ [[ ${EUID:-$(id -u)} -eq 0 ]] || die "Run this command as root."; }
+installed(){ [[ -f "$APP_DIR/docker-compose.yml" ]] || die "3X-UI Ratio is not installed in $APP_DIR."; }
+version(){ installed; cat "$APP_DIR/VERSION" 2>/dev/null || echo unknown; }
+status(){ installed; "${COMPOSE[@]}" ps; }
+start(){ need_root; installed; "${COMPOSE[@]}" up -d; ok "Service started."; }
+stop(){ need_root; installed; "${COMPOSE[@]}" stop; ok "Service stopped."; }
+restart(){ need_root; installed; "${COMPOSE[@]}" restart; ok "Service restarted."; }
+logs(){ installed; "${COMPOSE[@]}" logs -f --tail=200 ratio; }
+
+backup(){
+  need_root
+  installed
+  mkdir -p "$BACKUP_DIR"
+  local stamp file
+  stamp=$(date +%Y%m%d-%H%M%S)
+  file="$BACKUP_DIR/3xui-ratio-$stamp.tar.gz"
+  tar -C "$APP_DIR" -czf "$file" .env data VERSION docker-compose.yml
+  chmod 600 "$file"
+  ok "Backup created: $file"
+}
+
+update(){
+  need_root
+  installed
+  backup
+  local url="${1:-}" tmp extract source
+  if [[ -z "$url" ]]; then
+    url=$(grep -E '^UPDATE_URL=' "$APP_DIR/.env" 2>/dev/null | cut -d= -f2- || true)
+  fi
+
+  if [[ -d "$APP_DIR/.git" && -z "$url" ]]; then
+    info "Fetching the latest release from Git..."
+    git -C "$APP_DIR" fetch --all --tags
+    git -C "$APP_DIR" reset --hard origin/main
+  else
+    if [[ -z "$url" ]]; then
+      read -r -p "New release tar.gz URL or local file path: " url
+    fi
+    [[ -n "$url" ]] || die "No update package was provided."
+    info "Preparing the update package..."
+    tmp=$(mktemp -d)
+    extract="$tmp/extract"
+    mkdir -p "$extract"
+    if [[ -f "$url" ]]; then
+      cp "$url" "$tmp/update.tar.gz"
+    else
+      curl -fL --retry 3 --connect-timeout 15 "$url" -o "$tmp/update.tar.gz"
+    fi
+    tar -xzf "$tmp/update.tar.gz" -C "$extract"
+    source=$(find "$extract" -maxdepth 3 -type f -name docker-compose.yml -printf '%h\n' | head -n1)
+    [[ -n "$source" && -f "$source/Dockerfile" ]] || die "The update package structure is invalid."
+    cp "$APP_DIR/.env" "$tmp/.env"
+    rm -rf "$APP_DIR/app" "$APP_DIR/scripts" "$APP_DIR/tests"
+    cp -a "$source"/. "$APP_DIR"/
+    cp "$tmp/.env" "$APP_DIR/.env"
+    rm -rf "$tmp"
+  fi
+
+  cp "$APP_DIR/scripts/3xui-ratio" /usr/local/bin/3xui-ratio
+  chmod 755 /usr/local/bin/3xui-ratio
+  "${COMPOSE[@]}" build --pull
+  "${COMPOSE[@]}" up -d --remove-orphans
+  ok "Update completed. Installed version: $(version)"
+}
+
+uninstall(){
+  need_root
+  installed
+  echo -e "${red}This removes the container, Ratio database, configuration, and all application files.${reset}"
+  read -r -p "Type DELETE to continue: " answer
+  [[ "$answer" == "DELETE" ]] || { warn "Operation cancelled."; return; }
+  read -r -p "Create a backup before removal? [Y/n]: " keep
+  [[ "${keep:-Y}" =~ ^[Yy]$ ]] && backup
+  "${COMPOSE[@]}" down --volumes --remove-orphans --rmi local || true
+  rm -rf "$APP_DIR"
+  rm -f /usr/local/bin/3xui-ratio
+  ok "3X-UI Ratio was removed completely. Backups remain in $BACKUP_DIR."
+}
+
+show_config(){
+  need_root
+  installed
+  ${EDITOR:-nano} "$APP_DIR/.env"
+}
+
+pause(){ read -r -p "Press Enter to continue..."; }
+
+menu(){
+  while true; do
+    clear
+    echo -e "${cyan}======================================${reset}"
+    echo "          3X-UI Ratio Manager"
+    echo -e "${cyan}======================================${reset}"
+    echo " 1) Service status"
+    echo " 2) Start service"
+    echo " 3) Stop service"
+    echo " 4) Restart service"
+    echo " 5) Live logs"
+    echo " 6) Create full backup"
+    echo " 7) Update panel"
+    echo " 8) Edit installation settings"
+    echo " 9) Show version"
+    echo "10) Uninstall completely"
+    echo " 0) Exit"
+    read -r -p "Select an option: " choice
+    case "$choice" in
+      1) status; pause ;;
+      2) start; sleep 1 ;;
+      3) stop; sleep 1 ;;
+      4) restart; sleep 1 ;;
+      5) logs ;;
+      6) backup; pause ;;
+      7) update; pause ;;
+      8) show_config ;;
+      9) echo "Version: $(version)"; pause ;;
+      10) uninstall; return ;;
+      0) return ;;
+      *) warn "Invalid selection."; sleep 1 ;;
+    esac
+  done
+}
+
+case "${1:-menu}" in
+  menu) menu ;;
+  status) status ;;
+  start) start ;;
+  stop) stop ;;
+  restart) restart ;;
+  logs) logs ;;
+  backup) backup ;;
+  update) update "${2:-}" ;;
+  uninstall|remove) uninstall ;;
+  version|-v|--version) version ;;
+  config) show_config ;;
+  *) echo "Usage: 3xui-ratio [status|start|stop|restart|logs|backup|update|config|version|uninstall]"; exit 1 ;;
+esac

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <script>
+    (() => {
+      const saved = localStorage.getItem('ratio-language');
+      const lang = saved === 'fa' || saved === 'en' ? saved : (navigator.language?.toLowerCase().startsWith('fa') ? 'fa' : 'en');
+      const savedTheme = localStorage.getItem('ratio-theme');
+      const theme = savedTheme === 'light' || savedTheme === 'dark'
+        ? savedTheme
+        : (window.matchMedia?.('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+      document.documentElement.lang = lang;
+      document.documentElement.dir = lang === 'fa' ? 'rtl' : 'ltr';
+      document.documentElement.dataset.theme = theme;
+    })();
+  </script>
+  <title>{% block title %}3X-UI Ratio{% endblock %}</title>
+  <link rel="icon" type="image/svg+xml" href="/static/ratio-logo.svg?v={{ version }}">
+  <link rel="apple-touch-icon" href="/static/ratio-logo.png?v={{ version }}">
+  <link rel="stylesheet" href="/static/app.css?v={{ version }}">
+</head>
+<body>
+  {% block body %}{% endblock %}
+</body>
+</html>

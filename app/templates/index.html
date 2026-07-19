@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}3X-UI Ratio{% endblock %}
+{% block body %}
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="brand">
+      <img class="ratio-logo sidebar-logo" src="/static/ratio-logo.svg?v={{ version }}" alt="3X-UI Ratio logo">
+      <div class="brand-copy">
+        <strong>3X-UI Ratio</strong>
+        <div class="brand-subrow">
+          <small>v{{ version }}</small>
+          <div class="brand-socials" aria-label="Project links">
+            <a class="brand-social brand-social-github" href="https://github.com/rezakhosh78/3x-ui-Ratio" target="_blank" rel="noopener noreferrer" aria-label="3X-UI Ratio on GitHub" title="GitHub">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 .8a11.4 11.4 0 0 0-3.6 22.2c.6.1.8-.3.8-.6v-2.2c-3.3.7-4-1.4-4-1.4-.6-1.4-1.4-1.8-1.4-1.8-1.1-.8.1-.8.1-.8 1.2.1 1.9 1.3 1.9 1.3 1.1 1.9 2.9 1.3 3.6 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.6.1-3.2 0 0 1-.3 3.3 1.2a11.4 11.4 0 0 1 6 0c2.3-1.5 3.3-1.2 3.3-1.2.7 1.6.3 2.9.1 3.2.8.9 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A11.4 11.4 0 0 0 12 .8Z"/></svg>
+            </a>
+            <a class="brand-social brand-social-telegram" href="https://t.me/pingplas_channel" target="_blank" rel="noopener noreferrer" aria-label="Ping Plus Telegram channel" title="Telegram">
+              <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21.8 3.2 18.6 20c-.2 1.2-.9 1.5-1.9.9l-4.8-3.5-2.3 2.2c-.3.3-.5.5-1 .5l.3-4.9 8.9-8c.4-.3-.1-.5-.6-.2L6.2 13.9l-4.7-1.5c-1-.3-1-1 .2-1.5L20.2 3.8c.9-.3 1.7.2 1.6-.6Z"/></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <nav>
+      <button class="nav-item active" data-view="users">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0H5Z"/></svg>
+        <span data-i18n="nav_users">Users</span>
+      </button>
+      <button class="nav-item" data-view="settings">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8 7a4 4 0 1 1 7.46 2H20v3h-4.54A4 4 0 0 1 8 7Zm-4 8h4.54A4 4 0 1 0 16 17a4 4 0 0 0-.54-2H20v-3H4v3Z"/></svg>
+        <span data-i18n="nav_connection">Connection</span>
+      </button>
+      <button class="nav-item" data-view="database">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 3h11l3 3v15H5V3Zm3 2v5h8V5H8Zm0 10v4h8v-4H8Z"/></svg>
+        <span data-i18n="nav_backup">Backup & Restore</span>
+      </button>
+      <button class="nav-item" data-view="events">
+        <svg class="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 3h12a2 2 0 0 1 2 2v16H4V5a2 2 0 0 1 2-2Zm2 5h8V6H8v2Zm0 4h8v-2H8v2Zm0 4h6v-2H8v2Z"/></svg>
+        <span data-i18n="nav_audit">Logs</span>
+      </button>
+    </nav>
+    <div class="sidebar-bottom">
+      <form class="logout-form" method="post" action="/logout"><button class="nav-item logout" type="submit" data-i18n="sign_out">Sign out</button></form>
+      <div class="sidebar-powered">Powered By <strong>ReZa Kh</strong></div>
+    </div>
+  </aside>
+
+  <main class="content">
+    <header class="topbar">
+      <div><h1 id="page-title" data-i18n="title_users">User management</h1><p id="sync-caption" data-i18n="loading_status">Loading status…</p></div>
+      <div class="top-actions">
+        <button id="theme-toggle" class="btn secondary theme-button" type="button" data-i18n-aria="theme_toggle_aria" aria-label="Change theme">☀ Light</button>
+        <button id="language-toggle" class="btn secondary language-button" type="button">فارسی</button>
+        <button id="engine-toggle" class="btn secondary engine-button" type="button" data-i18n="engine_loading">Ratio…</button>
+        <button id="sync-button" class="btn primary" type="button" data-i18n="synchronize">Synchronize</button>
+      </div>
+    </header>
+
+    <section id="view-users" class="view active">
+      <div id="engine-paused-banner" class="engine-paused-banner" hidden data-i18n="engine_paused_banner">Ratio is paused. Operational actions are disabled until the master switch is turned on.</div>
+      <div class="stats-grid">
+        <article class="stat"><span data-i18n="total_users">Total users</span><strong id="stat-total">—</strong></article>
+        <article class="stat"><span data-i18n="enabled_3xui">Enabled in 3X-UI</span><strong id="stat-enabled">—</strong></article>
+        <article class="stat"><span data-i18n="managed_ratio">Managed by Ratio</span><strong id="stat-enforced">—</strong></article>
+        <article class="stat"><span data-i18n="quota_exhausted">Quota exhausted</span><strong id="stat-exhausted">—</strong></article>
+      </div>
+      <div class="panel toolbar user-toolbar">
+        <div class="search-group">
+          <input id="search" data-i18n-placeholder="search_users" placeholder="Search users…">
+          <span id="user-count" class="muted"></span>
+        </div>
+        <div class="bulk-actions">
+          <span id="selected-count" class="selection-count" data-i18n="selected_none">0 selected</span>
+          <button id="bulk-quota" class="btn secondary" type="button" data-operational disabled data-i18n="apply_quota_selected">Apply quota to selected</button>
+          <button id="start-selected-enforcement" class="btn success" type="button" data-operational disabled data-i18n="start_selected_enforcement">Start Enforcement</button>
+          <button id="stop-all-enforcement" class="btn danger" type="button" data-operational data-i18n="stop_all_enforcement">Stop All Enforcement</button>
+        </div>
+      </div>
+      <div class="panel table-wrap">
+        <table>
+          <thead><tr><th class="select-column"><input id="select-all-users" type="checkbox" data-i18n-aria="select_all_users" aria-label="Select all visible users"></th><th data-i18n="user">User</th><th data-i18n="subscription_usage">Subscription usage</th><th data-i18n="ratio_usage">Ratio cycle usage</th><th data-i18n="quota">Quota</th><th data-i18n="status">Status</th><th data-i18n="actions">Actions</th></tr></thead>
+          <tbody id="users-body"><tr><td colspan="7" class="empty" data-i18n="loading">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="view-events" class="view">
+      <div class="panel table-wrap">
+        <table><thead><tr><th data-i18n="time">Time</th><th data-i18n="level">Level</th><th data-i18n="event_action">Action</th><th data-i18n="user">User</th><th data-i18n="message">Message</th></tr></thead><tbody id="events-body"></tbody></table>
+      </div>
+    </section>
+
+    <section id="view-settings" class="view">
+      <form id="config-form" class="panel settings-grid">
+        <div class="section-title"><h2 data-i18n="connection_heading">3X-UI connection</h2><p data-i18n="connection_note">Ratio never connects directly to the 3X-UI database.</p></div>
+        <label><span data-i18n="panel_url">Complete panel URL</span><input id="panel-url" required placeholder="https://panel.example.com:2053/your-web-base-path"></label>
+        <label><span data-i18n="api_token">API token</span><input id="api-token" type="password" data-i18n-placeholder="token_placeholder" placeholder="Leave blank to keep the saved token"><small data-i18n="token_help">Paste the plaintext token shown once when it is created.</small></label>
+        <label class="wide"><span data-i18n="subscription_base">Subscription base URL</span><input id="sub-template" required placeholder="https://subscription.example.com/sub"><small data-i18n="subscription_help">Enter the subscription service URL without a client subId. Ratio receives each subId from 3X-UI and appends it automatically.</small><code class="url-example">https://subscription.example.com/sub/<span data-i18n="subid_example">CLIENT_SUB_ID</span></code></label>
+        <label><span data-i18n="poll_interval">Polling interval, seconds</span><input id="poll-interval" type="number" min="10" max="86400" required></label>
+        <label><span data-i18n="request_timeout">Request timeout, seconds</span><input id="request-timeout" type="number" min="5" max="120" required></label>
+        <label class="toggle"><input id="verify-tls" type="checkbox"><span data-i18n="verify_tls">Verify TLS certificates</span></label>
+        <label class="toggle"><input id="auto-disable" type="checkbox"><span data-i18n="auto_disable">Automatically disable exhausted users</span></label>
+        <div class="wide form-actions"><button id="test-config" class="btn secondary" type="button" data-operational data-i18n="test_connection">Test connection and subscription</button><button class="btn primary" type="submit" data-i18n="save_settings">Save settings</button></div>
+      </form>
+    </section>
+
+    <section id="view-database" class="view">
+      <div class="backup-grid">
+        <article class="panel backup-card">
+          <div class="section-title"><h2 data-i18n="download_backup">Download database backup</h2><p data-i18n="download_backup_desc">Create a consistent SQLite snapshot of users, quotas, usage counters, audit events, and encrypted connection settings.</p></div>
+          <div class="warning-box" data-i18n="backup_warning">Backups contain sensitive encrypted configuration. Store them securely. Restoring on another installation requires the same ENCRYPTION_KEY.</div>
+          <button id="download-backup" class="btn primary" type="button" data-i18n="create_backup">Create and download backup</button>
+        </article>
+
+        <article class="panel backup-card">
+          <div class="section-title"><h2 data-i18n="import_backup">Import database backup</h2><p data-i18n="import_backup_desc">Restore a Ratio backup. The current database is automatically saved as a restore point first.</p></div>
+          <label class="file-field"><span data-i18n="backup_file">Backup file</span><input id="restore-file" type="file" accept=".sqlite,.sqlite3,.db,application/vnd.sqlite3"></label>
+          <label class="confirm-field"><span><span data-i18n="type_restore">Type</span> <strong>RESTORE</strong> <span data-i18n="to_confirm">to confirm</span></span><input id="restore-confirm" autocomplete="off" placeholder="RESTORE"></label>
+          <div class="warning-box danger-box" data-i18n="restore_warning">Restore replaces the current Ratio database. It does not modify the 3X-UI database.</div>
+          <button id="restore-backup" class="btn danger" type="button" data-i18n="restore_button">Import and restore database</button>
+        </article>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="quota-modal" class="modal" aria-hidden="true">
+  <form id="quota-form" class="modal-card">
+    <div class="modal-head"><div><h2 id="quota-modal-title" data-i18n="set_quota">Set quota</h2><p id="quota-user"></p></div><button type="button" class="icon-btn" data-close>×</button></div>
+    <label><span data-i18n="new_quota">New quota (GB)</span><input id="quota-gb" type="number" step="0.01" min="0" required></label>
+    <label class="toggle"><input id="quota-enforcement" type="checkbox" checked><span data-i18n="disable_after_quota">Disable the user after quota exhaustion</span></label>
+    <label class="toggle"><input id="quota-reset" type="checkbox" checked><span data-i18n="start_new_cycle">Start a new Ratio usage cycle now</span></label>
+    <div class="form-actions"><button type="button" class="btn secondary" data-close data-i18n="cancel">Cancel</button><button class="btn primary" type="submit" data-i18n="save_quota">Save quota</button></div>
+  </form>
+</div>
+
+<div id="toast" class="toast"></div>
+<script>window.RATIO_VERSION={{ version|tojson }};</script>
+<script src="/static/app.js?v={{ version }}"></script>
+{% endblock %}
