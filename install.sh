@@ -1,116 +1,136 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-SCRIPT_VERSION="0.1.10"
-APP_DIR="/opt/3xui-ratio"
-SOURCE_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-STAGED_SOURCE=""
+REPO="rezakhosh78/3x-ui-Ratio"
+GITHUB_API="https://api.github.com/repos/${REPO}/releases/latest"
+TMP_DIR="$(mktemp -d -t 3xui-ratio-installer.XXXXXXXX)"
+ARCHIVE="${TMP_DIR}/3xui-ratio.tar.gz"
+EXTRACT_DIR="${TMP_DIR}/release"
 
-if [[ "$(readlink -f "$SOURCE_DIR")" == "$(readlink -f "$APP_DIR" 2>/dev/null || echo "$APP_DIR")" ]]; then
-  STAGED_SOURCE=$(mktemp -d)
-  cp -a "$SOURCE_DIR"/. "$STAGED_SOURCE"/
-  SOURCE_DIR="$STAGED_SOURCE"
-  trap '[[ -n "$STAGED_SOURCE" ]] && rm -rf "$STAGED_SOURCE"' EXIT
+red='\033[0;31m'
+green='\033[0;32m'
+yellow='\033[1;33m'
+cyan='\033[0;36m'
+reset='\033[0m'
+
+info() { echo -e "${cyan}[3X-UI Ratio]${reset} $*"; }
+ok()   { echo -e "${green}[OK]${reset} $*"; }
+warn() { echo -e "${yellow}[!]${reset} $*"; }
+die()  { echo -e "${red}[ERROR]${reset} $*" >&2; exit 1; }
+
+cleanup() {
+    rm -rf "$TMP_DIR"
+}
+trap cleanup EXIT INT TERM
+
+if [[ ${EUID:-$(id -u)} -ne 0 ]]; then
+    die 'Run as root:
+sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/rezakhosh78/3x-ui-Ratio/main/install.sh)"'
 fi
 
-red='\033[0;31m'; green='\033[0;32m'; yellow='\033[1;33m'; cyan='\033[0;36m'; reset='\033[0m'
-info(){ echo -e "${cyan}[3X-UI Ratio]${reset} $*"; }
-ok(){ echo -e "${green}[OK]${reset} $*"; }
-warn(){ echo -e "${yellow}[!]${reset} $*"; }
-die(){ echo -e "${red}[ERROR]${reset} $*" >&2; exit 1; }
+if ! command -v apt-get >/dev/null 2>&1; then
+    die "This installer currently supports Ubuntu and Debian-based systems."
+fi
 
-[[ ${EUID:-$(id -u)} -eq 0 ]] || die "Run the installer as root: sudo bash install.sh"
-command -v apt-get >/dev/null || die "This installer supports Ubuntu and Debian systems."
+install_requirements() {
+    local missing=0
 
-install_docker(){
-  if command -v docker >/dev/null && docker compose version >/dev/null 2>&1; then
-    return
-  fi
-  info "Installing Docker and Docker Compose..."
-  apt-get update
-  DEBIAN_FRONTEND=noninteractive apt-get install -y ca-certificates curl openssl docker.io
-  if ! apt-get install -y docker-compose-v2; then
-    apt-get install -y docker-compose-plugin || die "Docker Compose installation failed."
-  fi
-  systemctl enable --now docker
+    command -v curl >/dev/null 2>&1 || missing=1
+    command -v tar  >/dev/null 2>&1 || missing=1
+    command -v grep >/dev/null 2>&1 || missing=1
+    command -v sed  >/dev/null 2>&1 || missing=1
+    command -v find >/dev/null 2>&1 || missing=1
+
+    if (( missing )); then
+        info "Installing required packages..."
+        apt-get update
+        DEBIAN_FRONTEND=noninteractive apt-get install -y \
+            ca-certificates curl tar grep sed findutils
+    fi
 }
 
-install_docker
+get_latest_release_url() {
+    local release_json download_url
 
-if [[ -d "$APP_DIR" ]]; then
-  warn "$APP_DIR already exists."
-  read -r -p "Reinstall or upgrade this installation? [y/N]: " reinstall
-  [[ "${reinstall:-N}" =~ ^[Yy]$ ]] || exit 0
-  if [[ -f "$APP_DIR/docker-compose.yml" ]]; then
-    docker compose --project-directory "$APP_DIR" -f "$APP_DIR/docker-compose.yml" down || true
-  fi
-  cp -a "$APP_DIR/data" "/tmp/3xui-ratio-data-backup-$$" 2>/dev/null || true
-fi
+    release_json="$(
+        curl -fsSL \
+            --retry 3 \
+            --connect-timeout 15 \
+            --max-time 60 \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "$GITHUB_API"
+    )" || die "Could not read the latest GitHub release."
 
-read -r -p "Web panel port [8088]: " ratio_port
-ratio_port=${ratio_port:-8088}
-[[ "$ratio_port" =~ ^[0-9]+$ ]] && ((ratio_port >= 1 && ratio_port <= 65535)) || die "Invalid port."
+    download_url="$(
+        printf '%s\n' "$release_json" \
+        | grep -Eo '"browser_download_url"[[:space:]]*:[[:space:]]*"[^"]+\.tar\.gz"' \
+        | sed -E 's/^.*"([^"]+)"$/\1/' \
+        | grep -E '/3X-UI-Ratio-v[^/]+\.tar\.gz$' \
+        | head -n 1
+    )"
 
-read -r -p "Administrator username [admin]: " admin_user
-admin_user=${admin_user:-admin}
-[[ "$admin_user" =~ ^[A-Za-z0-9_.@-]+$ ]] || die "Username may contain only letters, numbers, dots, underscores, @, and hyphens."
+    [[ -n "$download_url" ]] || die \
+        "No 3X-UI Ratio .tar.gz asset was found in the latest GitHub release."
 
-while true; do
-  read -r -s -p "Administrator password (minimum 8 characters): " admin_password
-  echo
-  [[ ${#admin_password} -ge 8 ]] && break
-  warn "The password is too short."
-done
+    printf '%s' "$download_url"
+}
 
-read -r -p "Update package URL (optional, press Enter to skip): " update_url
-read -r -p "Use secure cookies over HTTPS only? [y/N]: " secure_cookie
-cookie_secure=false
-[[ "${secure_cookie:-N}" =~ ^[Yy]$ ]] && cookie_secure=true
+run_release_installer() {
+    local download_url project_dir local_installer exit_code
 
-info "Copying application files..."
-rm -rf "$APP_DIR"
-mkdir -p "$APP_DIR"
-cp -a "$SOURCE_DIR"/. "$APP_DIR"/
-rm -f "$APP_DIR/.env"
-mkdir -p "$APP_DIR/data" "$APP_DIR/backups"
+    download_url="$(get_latest_release_url)"
 
-if [[ -d "/tmp/3xui-ratio-data-backup-$$" ]]; then
-  cp -a "/tmp/3xui-ratio-data-backup-$$"/. "$APP_DIR/data"/ || true
-  rm -rf "/tmp/3xui-ratio-data-backup-$$"
-fi
+    info "Downloading the latest release..."
+    echo "$download_url"
 
-session_secret=$(openssl rand -hex 48)
-encryption_key=$(openssl rand -base64 32 | tr '+/' '-_' | tr -d '\n')
-admin_password_b64=$(printf '%s' "$admin_password" | base64 -w0)
+    curl -fL \
+        --retry 3 \
+        --connect-timeout 15 \
+        --max-time 300 \
+        "$download_url" \
+        -o "$ARCHIVE" \
+        || die "Release download failed."
 
-cat > "$APP_DIR/.env" <<ENV
-RATIO_BIND=0.0.0.0
-RATIO_PORT=$ratio_port
-ADMIN_USERNAME=$admin_user
-ADMIN_PASSWORD_B64=$admin_password_b64
-SESSION_SECRET=$session_secret
-ENCRYPTION_KEY=$encryption_key
-DATABASE_URL=sqlite:////data/ratio.db
-COOKIE_SECURE=$cookie_secure
-TRUSTED_HOSTS=*
-SYNC_DEFAULT_INTERVAL=60
-UPDATE_URL=$update_url
-ENV
+    mkdir -p "$EXTRACT_DIR"
 
-chmod 600 "$APP_DIR/.env"
-chown -R 10001:10001 "$APP_DIR/data"
-chmod 750 "$APP_DIR/data"
-chmod +x "$APP_DIR/scripts/3xui-ratio" "$APP_DIR/install.sh"
-cp "$APP_DIR/scripts/3xui-ratio" /usr/local/bin/3xui-ratio
-chmod 755 /usr/local/bin/3xui-ratio
+    info "Extracting release package..."
+    tar -xzf "$ARCHIVE" -C "$EXTRACT_DIR" \
+        || die "The downloaded release archive is invalid."
 
-info "Building and starting the container..."
-docker compose --project-directory "$APP_DIR" -f "$APP_DIR/docker-compose.yml" build
-docker compose --project-directory "$APP_DIR" -f "$APP_DIR/docker-compose.yml" up -d
+    # Preferred name for future packages.
+    local_installer="$(
+        find "$EXTRACT_DIR" -maxdepth 4 -type f \
+            \( -name "install-local.sh" -o -name "install.sh" \) \
+            -print \
+        | sort \
+        | head -n 1
+    )"
 
-server_ip=$(hostname -I 2>/dev/null | awk '{print $1}')
-ok "3X-UI Ratio was installed successfully."
-echo "Panel URL: http://${server_ip:-SERVER-IP}:$ratio_port"
-echo "Administrator: $admin_user"
-echo "Terminal manager: sudo 3xui-ratio"
-warn "For public access, place the panel behind HTTPS and then set COOKIE_SECURE=true."
+    [[ -n "$local_installer" && -f "$local_installer" ]] || die \
+        "No local installer was found inside the release archive."
+
+    project_dir="$(dirname "$local_installer")"
+
+    # A release must contain the application files, not only the bootstrap script.
+    [[ -f "$project_dir/docker-compose.yml" ]] || die \
+        "The release package does not contain docker-compose.yml beside its installer."
+
+    chmod +x "$local_installer"
+
+    info "Starting the local installer..."
+    (
+        cd "$project_dir"
+        bash "$local_installer"
+    )
+    exit_code=$?
+
+    if (( exit_code != 0 )); then
+        die "The local installer exited with code ${exit_code}."
+    fi
+
+    ok "Installation process completed."
+}
+
+install_requirements
+run_release_installer
