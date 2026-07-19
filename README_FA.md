@@ -4,7 +4,7 @@
 
 # 3X-UI Ratio
 
-### مدیریت مستقل حجم 3X-UI
+### مدیریت مستقل حجم کاربران نود 3X-UI
 
 [![Version](https://img.shields.io/github/v/release/rezakhosh78/3x-ui-Ratio?display_name=tag&style=for-the-badge)](https://github.com/rezakhosh78/3x-ui-Ratio/releases)
 [![License](https://img.shields.io/github/license/rezakhosh78/3x-ui-Ratio?style=for-the-badge)](LICENSE)
@@ -21,7 +21,7 @@
 
 ## 📌 معرفی
 
-**3X-UI Ratio** یک پنل مستقل برای مدیریت حجم کاربران 3X-UI است.
+**3X-UI Ratio** یک پنل مستقل برای مدیریت حجم کاربران نود X-UI است.
 
 این برنامه فهرست کاربران را از API پنل 3X-UI دریافت می‌کند،، حجم‌های تعریف‌شده را در دیتابیس مستقل خودش نگه می‌دارد و در صورت پایان حجم، کاربر را از طریق API رسمی 3X-UI غیرفعال می‌کند.
 
@@ -31,7 +31,7 @@
 
 ## ✨ امکانات
 
-- 👥 دریافت و همگام‌سازی کاربران 3X-UI
+- 👥 دریافت و همگام‌سازی کاربران نود 3X-UI
 - 📊 نمایش مصرف با نمودار پرشونده و رنگی
 - 🎯 تعریف حجم مستقل برای هر کاربر
 - 📴 غیرفعال‌کردن خودکار کاربر پس از پایان حجم
