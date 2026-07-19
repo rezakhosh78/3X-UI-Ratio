@@ -23,7 +23,7 @@
 
 **3X-UI Ratio** یک پنل مستقل برای مدیریت حجم کاربران 3X-UI است.
 
-این برنامه فهرست کاربران را از API پنل 3X-UI دریافت می‌کند، مصرف هر کاربر را از لینک Subscription می‌خواند، حجم‌های تعریف‌شده را در دیتابیس مستقل خودش نگه می‌دارد و در صورت پایان حجم، کاربر را از طریق API رسمی 3X-UI غیرفعال می‌کند.
+این برنامه فهرست کاربران را از API پنل 3X-UI دریافت می‌کند،، حجم‌های تعریف‌شده را در دیتابیس مستقل خودش نگه می‌دارد و در صورت پایان حجم، کاربر را از طریق API رسمی 3X-UI غیرفعال می‌کند.
 
 > 3X-UI Ratio هیچ تغییری را به‌صورت مستقیم روی دیتابیس 3X-UI انجام نمی‌دهد.
 
@@ -32,7 +32,6 @@
 ## ✨ امکانات
 
 - 👥 دریافت و همگام‌سازی کاربران 3X-UI
-- 📡 دریافت Upload، Download و Total از هدر لینک Subscription
 - 📊 نمایش مصرف با نمودار پرشونده و رنگی
 - 🎯 تعریف حجم مستقل برای هر کاربر
 - 📴 غیرفعال‌کردن خودکار کاربر پس از پایان حجم
@@ -63,7 +62,6 @@ API پنل 3X-UI
 3X-UI Ratio
    │
    ├── دیتابیس مستقل حجم‌ها
-   ├── خواندن مصرف Subscription
    ├── زمان‌بندی و اجرای محدودیت حجم
    │
    ▼
@@ -119,7 +117,7 @@ sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/rezakhosh78/3x-ui-R
 آخرین فایل `tar.gz` را از صفحه [Releases](https://github.com/rezakhosh78/3x-ui-Ratio/releases) دانلود کن و اجرا کن:
 
 ```bash
-tar -xzf 3X-UI-Ratio-*.tar.gz
+unzip 3X-UI-Ratio.zip
 cd 3xui-ratio
 sudo bash install.sh
 ```
@@ -263,7 +261,7 @@ sudo 3xui-ratio update
 یا مسیر فایل نسخه جدید را وارد کن:
 
 ```bash
-sudo 3xui-ratio update /root/3X-UI-Ratio-latest.tar.gz
+sudo 3xui-ratio update /root/3X-UI-Ratio-latest.zip
 ```
 
 پیش از جایگزینی فایل‌ها، یک Backup خودکار ساخته می‌شود.
@@ -353,17 +351,6 @@ sudo 3xui-ratio logs
 - 🔐 روش‌های احراز هویت بیشتر
 
 ---
-
-## 🤝 مشارکت
-
-گزارش باگ، پیشنهاد و Pull Request پذیرفته می‌شود.
-
-1. مخزن را Fork کن
-2. یک Branch جدید بساز
-3. تغییرات را Commit کن
-4. Pull Request ارسال کن
-
-در Issue یا Pull Request، آدرس خصوصی سرور، API Token، اطلاعات کاربران یا فایل Backup قرار نده.
 
 ---
 
