@@ -21,7 +21,7 @@
 
 **3X-UI Ratio** is an independent quota-management panel for 3X-UI.
 
-It reads users from the 3X-UI API, obtains each client's traffic usage from the subscription URL, stores quota information in its own database, and can disable a client through the official 3X-UI API when the configured quota is reached.
+It reads users from the 3X-UI API, obtains each client's traffic usage, stores quota information in its own database, and can disable a client through the official 3X-UI API when the configured quota is reached.
 
 > 3X-UI Ratio does **not** directly edit the 3X-UI database.
 
@@ -30,7 +30,7 @@ It reads users from the 3X-UI API, obtains each client's traffic usage from the 
 ## ✨ Features
 
 - 👥 Import and synchronize 3X-UI clients
-- 📡 Read upload, download, and total traffic from subscription headers
+- 📡 Read upload, download, and total traffic
 - 📊 Animated and color-coded usage progress bars
 - 🎯 Set an independent quota for each client
 - 📴 Automatically disable clients after quota exhaustion
@@ -61,7 +61,6 @@ It reads users from the 3X-UI API, obtains each client's traffic usage from the 
 3X-UI Ratio
    │
    ├── Independent quota database
-   ├── Subscription usage reader
    ├── Scheduler and enforcement engine
    │
    ▼
@@ -117,7 +116,7 @@ sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/rezakhosh78/3x-ui-R
 Download the latest `tar.gz` file from the [Releases](https://github.com/rezakhosh78/3x-ui-Ratio/releases) page and run:
 
 ```bash
-tar -xzf 3X-UI-Ratio-*.tar.gz
+unzip 3X-UI-Ratio-*.zip
 cd 3xui-ratio
 sudo bash install.sh
 ```
@@ -261,7 +260,7 @@ sudo 3xui-ratio update
 Or provide a release archive:
 
 ```bash
-sudo 3xui-ratio update /root/3X-UI-Ratio-latest.tar.gz
+sudo 3xui-ratio update /root/3X-UI-Ratio-latest.zip
 ```
 
 The updater creates a backup before replacing application files.
