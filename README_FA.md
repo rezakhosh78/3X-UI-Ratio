@@ -114,7 +114,7 @@ sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/rezakhosh78/3x-ui-R
 
 ## 📦 نصب دستی
 
-آخرین فایل `tar.gz` را از صفحه [Releases](https://github.com/rezakhosh78/3x-ui-Ratio/releases) دانلود کن و اجرا کن:
+آخرین فایل ` zip.` را از صفحه [Releases](https://github.com/rezakhosh78/3x-ui-Ratio/releases) دانلود کن و اجرا کن:
 
 ```bash
 unzip 3X-UI-Ratio.zip
